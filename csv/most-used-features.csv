@@ -1,0 +1,4 @@
+Path,Method,Hits
+/ajax/user/checkIsActive,GET,3
+/settings/catalog-books,GET,1
+/settings/catalog-books,POST,1

@@ -3,18 +3,13 @@ package main
 import (
     "bufio"
     "fmt"
+    "github.com/MMazoni/most-used-features/internal/data"
+    "github.com/MMazoni/most-used-features/internal/output"
     "log"
     "os"
-    "strings"
     "regexp"
-    "encoding/csv"
+    "strings"
 )
-
-type MostAccessedFeatures struct {
-    Path string
-    Method string
-    Access int
-}
 
 func main() {
     filePath := "access.log"
@@ -25,7 +20,7 @@ func main() {
     }
     defer file.Close()
 
-    sheets := make([]MostAccessedFeatures, 0)
+    sheets := make([]data.MostAccessedFeatures, 0)
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         line := scanner.Text()
@@ -36,26 +31,32 @@ func main() {
         }
 
         found := false
-        for i := range sheets {
-            if sheets[i].Path == path && sheets[i].Method == method {
+        for i, sheet := range sheets {
+            if sheet.Path == path && sheet.Method == method {
                 sheets[i].Access++
                 found = true
                 break
             }
         }
         if !found {
-            sheets = append(sheets, MostAccessedFeatures{
+            sheets = append(sheets, data.MostAccessedFeatures{
                 Path: path,
                 Method: method,
                 Access: 1,
             })
         }
     }
-    generateCsvFile(sheets)
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
     }
+    csvOutput := output.CsvOutput{}
+    err = csvOutput.GenerateOutput("csv/most-used-features.csv", sheets)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+    fmt.Println("CSV file created successfully")
 }
 
 func getPathAndMethodOfLogLine(line string, pattern string) (string, string) {
@@ -76,10 +77,11 @@ func getPathAndMethodOfLogLine(line string, pattern string) (string, string) {
  }
 
 func isTheCorrectPath(path string) bool {
-    pattern := `/(fonts|js|css|assets|img|favicon)`
-    regExp := regexp.MustCompile(pattern)
-    if regExp.MatchString(path) {
-        return false
+    prefixes := []string{"/fonts", "/js", "/css", "/assets", "/img", "/favicon"}
+    for _, prefix := range prefixes {
+        if strings.HasPrefix(path, prefix) {
+            return false
+        }
     }
     return true
 }
@@ -92,29 +94,4 @@ func formatPath(path string) string {
         return formatted[:lastIndex[0]]
     }
     return formatted
-}
-
-func generateCsvFile(data []MostAccessedFeatures) {
-    file, err := os.Create("most-used-features.csv")
-    if err != nil {
-        fmt.Println("Error creating file:", err)
-        return
-    }
-    defer file.Close()
-    csvWriter := csv.NewWriter(file)
-
-    header := []string{"Path", "Method", "Hits"}
-    csvWriter.Write(header)
-    for _, d := range data {
-        row := []string{d.Path, d.Method, fmt.Sprintf("%d", d.Access)}
-        csvWriter.Write(row)
-    }
-
-    csvWriter.Flush()
-
-    if err := csvWriter.Error(); err != nil {
-        fmt.Println("Error writing CSV:", err)
-        return
-    }
-    fmt.Println("CSV file created successfully")
 }
