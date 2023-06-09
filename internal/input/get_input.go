@@ -5,7 +5,7 @@ import (
     "os"
 )
 
-const filePath = "/var/log/httpd/access.log"
+const filePath = "/var/log/httpd/sbx-us_access_log"
 
 func GetInput() *os.File {
     file, err := os.Open(filePath)
