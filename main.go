@@ -8,6 +8,8 @@ import (
     "github.com/MMazoni/most-used-features/internal/search"
 )
 
+const outputFile = "csv/most-used-features.csv"
+
 func main() {
 
     // open file - get input
@@ -23,7 +25,7 @@ func main() {
 
     // generate the output
     csvOutput := output.CsvOutput{}
-    err = csvOutput.GenerateOutput("csv/most-used-features.csv", sheets)
+    err = csvOutput.GenerateOutput(outputFile, sheets)
     if err != nil {
         fmt.Println("Error:", err)
         return
