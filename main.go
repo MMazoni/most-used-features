@@ -7,9 +7,10 @@ import (
     "os"
     "strings"
     "regexp"
+    "encoding/csv"
 )
 
-type Csv struct {
+type MostAccessedFeatures struct {
     Path string
     Method string
     Access int
@@ -24,7 +25,7 @@ func main() {
     }
     defer file.Close()
 
-    sheets := make([]Csv, 0)
+    sheets := make([]MostAccessedFeatures, 0)
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         line := scanner.Text()
@@ -43,14 +44,14 @@ func main() {
             }
         }
         if !found {
-            sheets = append(sheets, Csv{
+            sheets = append(sheets, MostAccessedFeatures{
                 Path: path,
                 Method: method,
                 Access: 1,
             })
         }
     }
-    fmt.Println(sheets)
+    generateCsvFile(sheets)
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
@@ -91,4 +92,29 @@ func formatPath(path string) string {
         return formatted[:lastIndex[0]]
     }
     return formatted
+}
+
+func generateCsvFile(data []MostAccessedFeatures) {
+    file, err := os.Create("most-used-features.csv")
+    if err != nil {
+        fmt.Println("Error creating file:", err)
+        return
+    }
+    defer file.Close()
+    csvWriter := csv.NewWriter(file)
+
+    header := []string{"Path", "Method", "Hits"}
+    csvWriter.Write(header)
+    for _, d := range data {
+        row := []string{d.Path, d.Method, fmt.Sprintf("%d", d.Access)}
+        csvWriter.Write(row)
+    }
+
+    csvWriter.Flush()
+
+    if err := csvWriter.Error(); err != nil {
+        fmt.Println("Error writing CSV:", err)
+        return
+    }
+    fmt.Println("CSV file created successfully")
 }
