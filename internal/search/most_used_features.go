@@ -2,12 +2,13 @@ package search
 
 import (
     "bufio"
-    "github.com/MMazoni/most-used-features/internal/data"
     "fmt"
+    "github.com/MMazoni/most-used-features/internal/data"
+    "unicode"
     "os"
     "regexp"
-    "strings"
     "strconv"
+    "strings"
 )
 
 func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
@@ -16,7 +17,7 @@ func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
     for scanner.Scan() {
         line := scanner.Text()
         path, method, code := getWordsOfLogLine(line, "HTTP/1.1\"")
-
+        controller, action := getControllerAndActionFromPath(path)
         if !isTheCorrectPath(path) {
             continue
         }
@@ -40,6 +41,8 @@ func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
             sheets = append(sheets, data.MostAccessedFeatures{
                 Path:   path,
                 Method: method,
+                Controller: controller,
+                Action: action,
                 Access: 1,
                 Error: errorCount,
             })
@@ -93,3 +96,37 @@ func formatPath(path string) string {
     }
     return formatted
 }
+
+func getControllerAndActionFromPath(path string) (string, string) {
+    var controller = ""
+    if path == "/" || path == "//" {
+        return "Index", "Index"
+    }
+
+    parts := strings.Split(path[1:], "/")
+
+    if strings.HasPrefix(path, "/api/") || strings.HasPrefix(path, "/ajax/") {
+        controller = strings.Join([]string{capitalize(parts[0]), " ", capitalize(parts[1]) }, "")
+        if len(parts) == 2 {
+            return controller, "Index"
+        }
+        return controller, capitalize(parts[2])
+    }
+
+    controller = capitalize(parts[0])
+
+    if len(parts) == 1 {
+        return controller, "Index"
+    }
+    return controller, capitalize(parts[1])
+}
+
+func capitalize(str string) string {
+    if len(str) < 2 {
+        return ""
+    }
+    runes := []rune(str)
+    runes[0] = unicode.ToUpper(runes[0])
+    return string(runes)
+}
+
