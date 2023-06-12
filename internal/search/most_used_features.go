@@ -3,9 +3,11 @@ package search
 import (
     "bufio"
     "github.com/MMazoni/most-used-features/internal/data"
+    "fmt"
     "os"
     "regexp"
     "strings"
+    "strconv"
 )
 
 func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
@@ -13,7 +15,7 @@ func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         line := scanner.Text()
-        path, method := getPathAndMethodOfLogLine(line, "HTTP/1.1\"")
+        path, method, code := getWordsOfLogLine(line, "HTTP/1.1\"")
 
         if !isTheCorrectPath(path) {
             continue
@@ -23,15 +25,23 @@ func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
         for i, sheet := range sheets {
             if sheet.Path == path && sheet.Method == method {
                 sheets[i].Access++
+                if code >= 400 && code < 600 {
+                    sheets[i].Error++
+                }
                 found = true
                 break
             }
         }
         if !found {
+            errorCount := 0
+            if code >= 400 && code < 600 {
+                errorCount = 1
+            }
             sheets = append(sheets, data.MostAccessedFeatures{
                 Path:   path,
                 Method: method,
                 Access: 1,
+                Error: errorCount,
             })
         }
     }
@@ -41,21 +51,27 @@ func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
 
 }
 
-func getPathAndMethodOfLogLine(line string, pattern string) (string, string) {
+func getWordsOfLogLine(line string, pattern string) (string, string, int) {
     index := strings.Index(line, pattern)
     if index == -1 {
-        return "", ""
+        return "", "", 0
     }
 
-    substring := line[:index]
-    words := strings.Fields(substring)
+    beforeSubstring := line[:index]
+    afterSubstring := line[index:]
+    words := strings.Fields(beforeSubstring)
+    code, err := strconv.Atoi(strings.Fields(afterSubstring)[1])
+    if err != nil {
+        fmt.Println("Failed to convert string to int:", err)
+        code = 0
+    }
     if len(words) > 1 {
-        return formatPath(words[len(words)-1]), words[len(words)-2][1:]
+        return formatPath(words[len(words)-1]), words[len(words)-2][1:], code
     } else if len(words) == 1 {
-        return "", words[0]
+        return "", words[0], code
     }
 
-    return "", ""
+    return "", "", 0
 }
 
 func isTheCorrectPath(path string) bool {

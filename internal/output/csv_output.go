@@ -18,11 +18,11 @@ func (co CsvOutput) GenerateOutput(filePath string, data []data.MostAccessedFeat
 
     csvWriter := csv.NewWriter(file)
 
-    header := []string{"Path", "Method", "Hits"}
+    header := []string{"Path", "Method", "Hits", "Errors"}
     csvWriter.Write(header)
 
     for _, d := range data {
-        row := []string{d.Path, d.Method, fmt.Sprintf("%d", d.Access)}
+        row := []string{d.Path, d.Method, fmt.Sprintf("%d", d.Access), fmt.Sprintf("%d", d.Error)}
         csvWriter.Write(row)
     }
 
