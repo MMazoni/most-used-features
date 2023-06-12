@@ -59,7 +59,7 @@ func getPathAndMethodOfLogLine(line string, pattern string) (string, string) {
 }
 
 func isTheCorrectPath(path string) bool {
-    prefixes := []string{"/fonts", "/js", "/css", "/assets", "/img", "/favicon"}
+    prefixes := []string{"/fonts", "/js", "/css", "/assets", "/img", "/favicon", "/manifest.json", "/ads.txt", "/robots.txt", "/image", "/apple-touch-icon", "/RepairQ-"}
     for _, prefix := range prefixes {
         if strings.HasPrefix(path, prefix) {
             return false
