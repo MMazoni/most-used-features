@@ -19,7 +19,7 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, timestampObj data.Time
     for scanner.Scan() {
         line := scanner.Text()
         line = strings.ReplaceAll(line, "//", "/")
-        path, method, code, date, shouldSkip := getWordsOfLogLine(line, "HTTP/")
+        path, method, code, shouldSkip := getWordsOfLogLine(line, "HTTP/")
 
         if shouldSkip {
             continue
@@ -28,7 +28,7 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, timestampObj data.Time
             continue
         }
         controller, action := getControllerAndActionFromPath(path)
-        timestampObj, _ = getTimestamp(date, timestampObj)
+//        timestampObj, _ = getTimestamp(date, timestampObj)
 
         found := false
         for i, sheet := range sheets {
@@ -62,20 +62,21 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, timestampObj data.Time
 
 }
 
-func getWordsOfLogLine(line string, pattern string) (string, string, int, string, bool) {
+func getWordsOfLogLine(line string, pattern string) (string, string, int, bool) {
     index := strings.Index(line, pattern)
     if index == -1 {
-        return "", "", 0, "", true
+        return "", "", 0, true
     }
 
     beforeSubstring := line[:index]
     afterSubstring := line[index:]
     words := strings.Fields(beforeSubstring)
-    path := words[len(words)-1]
+    path := formatPath(words[len(words)-1])
     if !isTheCorrectPath(path) {
-        return "", "", 0, "", true
+        return "", "", 0, true
     }
-    date := words[len(words)-4][1:12]
+
+//    date = words[len(words)-4][1:12]
 
 
     code, err := strconv.Atoi(strings.Fields(afterSubstring)[1])
@@ -84,12 +85,12 @@ func getWordsOfLogLine(line string, pattern string) (string, string, int, string
         code = 0
     }
     if len(words) > 1 {
-        return formatPath(path), words[len(words)-2][1:], code, date, false
+        return path, words[len(words)-2][1:], code, false
     } else if len(words) == 1 {
-        return "", words[0], code, date, false
+        return "", words[0], code, false
     }
 
-    return "", "", 0, date, true
+    return "", "", 0, true
 }
 
 func isTheCorrectPath(path string) bool {

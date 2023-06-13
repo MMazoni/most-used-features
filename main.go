@@ -61,8 +61,8 @@ func main() {
         return nil
     })
 
-    firstDate, lastDate := formatDate(timestampFilename)
-    outputFile := fmt.Sprintf("%s/features%s-%s.csv", outputDir, firstDate, lastDate)
+//    firstDate, lastDate := formatDate(timestampFilename)
+    outputFile := fmt.Sprintf("%s/features-%s.csv", outputDir, time.Now().Format("200601021504"))
     csvOutput := output.CsvOutput{}
     err = csvOutput.GenerateOutput(outputFile, sheets)
     if err != nil {
