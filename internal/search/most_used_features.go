@@ -11,8 +11,7 @@ import (
     "strings"
 )
 
-func MostUsedFeatures(file *os.File) ([]data.MostAccessedFeatures, error) {
-    sheets := make([]data.MostAccessedFeatures, 0)
+func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data.MostAccessedFeatures, error) {
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         line := scanner.Text()

@@ -3,22 +3,16 @@ package input
 import (
     "bufio"
     "fmt"
-    "log"
     "strings"
     "os"
 )
 
-func GetInput() *os.File {
+func GetInput() string {
     reader := bufio.NewReader(os.Stdin)
 
-    fmt.Print("Enter the log file path: ")
-    filePath, _ := reader.ReadString('\n')
-    filePath = strings.TrimSpace(filePath)
+    fmt.Print("Enter the directory log path: ")
+    dirPath, _ := reader.ReadString('\n')
+    dirPath = strings.TrimSpace(dirPath)
 
-    file, err := os.Open(filePath)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    return file
+    return dirPath
 }
