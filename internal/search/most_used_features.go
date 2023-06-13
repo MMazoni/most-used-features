@@ -16,7 +16,7 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data
     for scanner.Scan() {
         line := scanner.Text()
         path, method, code := getWordsOfLogLine(line, "HTTP/")
-        if method == "OPTIONS" || !strings.Contains(path, "/") {
+        if method == "OPTIONS" || method == "HEAD" || !strings.Contains(path, "/") {
             continue
         }
         controller, action := getControllerAndActionFromPath(path)
@@ -80,7 +80,37 @@ func getWordsOfLogLine(line string, pattern string) (string, string, int) {
 }
 
 func isTheCorrectPath(path string) bool {
-    prefixes := []string{"/fonts", "/js", "/css", "/assets", "/img", "/favicon", "/manifest.json", "/ads.txt", "/robots.txt", "/image", "/apple-touch-icon", "/RepairQ-"}
+    prefixes := []string{
+        "/fonts", "/js", "/css", "/assets", "/img", "/favicon", "/manifest.json",
+        "/ads.txt", "/robot", "/image", "/apple-touch-icon", "/RepairQ-",
+        "/.git", "/Core","/boaform", "/GponForm", "/_profiler", "/.env", "/system",
+        "/HNAP1", "/client", "/upl", "/geoip", "/1.php", "/bundle", "/file",
+        "/sqlmanager", "/db", "/php", "/mysql", "/sql", "/admin", "/_phpmyadmin",
+        "/phpMyAdmin", "/MyAdmin", "/administrator", "/PMA", "/1php", "/pma",
+        "/wp-content", "/program", "/vendor", "/geoserver", "/hudson", "/boaform",
+        "/cgi-bin", "/.git", "/Telerik", "/gate", "/debug", "/sitemap", "/live",
+        "/back", "/dev", "/core", "/source", "/rest", "/script", "/laravel",
+        "/shared", "/private", "/app", "/env", "/docker", "/cp", "/cms",
+        "/local", "/front", "/config", "/video", "http", "/dvr", "/axis",
+        "/cn", "/druid", "/old", "/aws", "/blogs", "/v2", "/s/", "/ecp/",
+        "/telescope", "/mgmt", "/sendgrid", "/manage", "/doc", "/owa", "/manager",
+        "/metrics", "/conf", "/library", "/audio", "/storage", "/base",
+        "/protected", "/newsite", "/www", "/sites", "/database", "/ec2",
+        "/muieblackcat", "/shell", "/dashboard", "/download", "/supp",
+        "/root", "/test", "/temp", "/tools", "/server", "/.docker",
+        "/.s3", "/.vscode", "/alpha", "/beta", "/bootstrap", "/demo",
+        "/home", "/manual", "/services", "/apache", "/inf", "/deploy",
+        "/forum", "/console", "/web", "/File", "/channel", "/sys",
+        "/.jupyter", "/twitter", "/acme", "/anaconda", "/agora",
+        "/babel", "/backend", "/back-end", "/backup", "/blob", "bookchain",
+        "/blue", "/box", "/build", "/cardea", "/cron", "/dataset", "/custom",
+        "/delivery", "/dist", "/django", "/example", "/e2e", "/engine",
+        "/dotfiles", "/favs", "/exapi", "/fastlane", "/Final", "/final",
+        "/fixture", "/flask", "/gists", "/html", "/icon", "/src", "/static",
+        "/style", "/stat", "/theme", "/unsplash", "/unix", "/ubuntu",
+        "/vue", "/symfony", "/cred", "/linux", "/node", "/ops", "/picture",
+        "/prisma", "/public", "/Socket", "/var", "/.wp",
+    }
     for _, prefix := range prefixes {
         if strings.HasPrefix(path, prefix) {
             return false
