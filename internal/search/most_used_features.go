@@ -13,10 +13,12 @@ import (
 
 func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data.MostAccessedFeatures, error) {
     scanner := bufio.NewScanner(file)
+    allowedMethods := "GET POST PUT PATCH DELETE"
     for scanner.Scan() {
         line := scanner.Text()
+        line = strings.ReplaceAll(line, "//", "/")
         path, method, code := getWordsOfLogLine(line, "HTTP/")
-        if method == "OPTIONS" || method == "HEAD" || !strings.Contains(path, "/") {
+        if !strings.Contains(allowedMethods, method) || !strings.Contains(path, "/") {
             continue
         }
         controller, action := getControllerAndActionFromPath(path)
