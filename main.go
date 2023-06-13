@@ -12,10 +12,8 @@ import (
     "time"
 )
 
-const outputDir = "csv"
-
 func main() {
-    dir := input.GetInput()
+    dir, outputDir := input.GetInput()
     startTime := time.Now()
 
     fmt.Println(".")

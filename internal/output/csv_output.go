@@ -3,8 +3,8 @@ package output
 import (
     "encoding/csv"
     "fmt"
-    "os"
     "github.com/MMazoni/most-used-features/internal/data"
+    "os"
 )
 
 type CsvOutput struct{}
