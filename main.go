@@ -27,7 +27,7 @@ func main() {
 
         if !d.IsDir() {
 
-            if !strings.HasSuffix(path, "access_log") {
+            if !strings.Contains(path, "access_log") {
                 return filepath.SkipDir
             }
 
