@@ -15,7 +15,10 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         line := scanner.Text()
-        path, method, code := getWordsOfLogLine(line, "HTTP/1.1\"")
+        path, method, code := getWordsOfLogLine(line, "HTTP/")
+        if method == "OPTIONS" || !strings.Contains(path, "/") {
+            continue
+        }
         controller, action := getControllerAndActionFromPath(path)
         if !isTheCorrectPath(path) {
             continue
