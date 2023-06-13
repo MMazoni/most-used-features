@@ -6,6 +6,7 @@ import (
     "github.com/MMazoni/most-used-features/internal/input"
     "github.com/MMazoni/most-used-features/internal/output"
     "github.com/MMazoni/most-used-features/internal/search"
+    "log"
     "os"
     "path/filepath"
     "strings"
@@ -16,10 +17,28 @@ func main() {
     dir, outputDir := input.GetInput()
     startTime := time.Now()
 
+    // log the errors
+    logFile, err := os.Create("logs/error.log")
+    if err != nil {
+        fmt.Println("Failed to create log file:", err)
+        return
+    }
+    defer logFile.Close()
+
+    // Set the log output to the file
+    log.SetOutput(logFile)
+
+    defer func() {
+        if r := recover(); r != nil {
+            errMsg := fmt.Sprintf("Panic occurred: %v", r)
+            log.Println(errMsg)
+        }
+    }()
+
     fmt.Println(".")
     sheets := make([]data.MostAccessedFeatures, 0)
     timestampFilename := data.TimestampFilename{}
-    err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+    err = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
         if err != nil {
             return err
         }

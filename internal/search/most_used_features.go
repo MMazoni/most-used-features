@@ -19,15 +19,15 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, timestampObj data.Time
     for scanner.Scan() {
         line := scanner.Text()
         line = strings.ReplaceAll(line, "//", "/")
-        path, method, code, date := getWordsOfLogLine(line, "HTTP/")
+        path, method, code, date, shouldSkip := getWordsOfLogLine(line, "HTTP/")
 
+        if shouldSkip {
+            continue
+        }
         if !strings.Contains(allowedMethods, method) || !strings.Contains(path, "/") {
             continue
         }
         controller, action := getControllerAndActionFromPath(path)
-        if !isTheCorrectPath(path) {
-            continue
-        }
         timestampObj, _ = getTimestamp(date, timestampObj)
 
         found := false
@@ -62,15 +62,19 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, timestampObj data.Time
 
 }
 
-func getWordsOfLogLine(line string, pattern string) (string, string, int, string) {
+func getWordsOfLogLine(line string, pattern string) (string, string, int, string, bool) {
     index := strings.Index(line, pattern)
     if index == -1 {
-        return "", "", 0, ""
+        return "", "", 0, "", true
     }
 
     beforeSubstring := line[:index]
     afterSubstring := line[index:]
     words := strings.Fields(beforeSubstring)
+    path := words[len(words)-1]
+    if !isTheCorrectPath(path) {
+        return "", "", 0, "", true
+    }
     date := words[len(words)-4][1:12]
 
 
@@ -80,12 +84,12 @@ func getWordsOfLogLine(line string, pattern string) (string, string, int, string
         code = 0
     }
     if len(words) > 1 {
-        return formatPath(words[len(words)-1]), words[len(words)-2][1:], code, date
+        return formatPath(path), words[len(words)-2][1:], code, date, false
     } else if len(words) == 1 {
-        return "", words[0], code, date
+        return "", words[0], code, date, false
     }
 
-    return "", "", 0, date
+    return "", "", 0, date, true
 }
 
 func isTheCorrectPath(path string) bool {
@@ -96,7 +100,7 @@ func isTheCorrectPath(path string) bool {
         "/HNAP1", "/client", "/upl", "/geoip", "/1.php", "/bundle", "/file",
         "/sqlmanager", "/db", "/php", "/mysql", "/sql", "/admin", "/_phpmyadmin",
         "/phpMyAdmin", "/MyAdmin", "/administrator", "/PMA", "/1php", "/pma",
-        "/wp-content", "/program", "/vendor", "/geoserver", "/hudson", "/boaform",
+        "/wp", "/program", "/vendor", "/geoserver", "/hudson", "/boaform",
         "/cgi-bin", "/.git", "/Telerik", "/gate", "/debug", "/sitemap", "/live",
         "/back", "/dev", "/core", "/source", "/rest", "/script", "/laravel",
         "/shared", "/private", "/app", "/env", "/docker", "/cp", "/cms",
