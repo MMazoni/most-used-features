@@ -12,14 +12,15 @@ import (
     "time"
 )
 
-const outputFile = "csv/most-used-features.csv"
+const outputDir = "csv"
 
 func main() {
-    startTime := time.Now()
     dir := input.GetInput()
+    startTime := time.Now()
 
     fmt.Println(".")
     sheets := make([]data.MostAccessedFeatures, 0)
+    timestampFilename := data.TimestampFilename{}
     err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
         if err != nil {
             return err
@@ -33,7 +34,7 @@ func main() {
             }
 
             fmt.Println("File processed:", path)
-            sheets, err = search.MostUsedFeatures(sheets, file)
+            sheets, timestampFilename, err = search.MostUsedFeatures(sheets, timestampFilename, file)
             defer file.Close()
 
             if err != nil {
@@ -43,6 +44,8 @@ func main() {
         return nil
     })
 
+    firstDate, lastDate := formatDate(timestampFilename)
+    outputFile := fmt.Sprintf("%s/features%s-%s.csv", outputDir, firstDate, lastDate)
     csvOutput := output.CsvOutput{}
     err = csvOutput.GenerateOutput(outputFile, sheets)
     if err != nil {
@@ -52,5 +55,13 @@ func main() {
     elapsedTime := time.Since(startTime)
     seconds := elapsedTime.Seconds()
     fmt.Println(".")
-    fmt.Printf("CSV file created successfully in %.2f seconds\n", seconds)
+    fmt.Printf("CSV file created successfully in %.4f seconds\n", seconds)
+}
+
+func formatDate(timestamp data.TimestampFilename) (string, string) {
+    layout := "20060102"
+    firstDateString := timestamp.FirstHitDate.Format(layout)
+    lastDateString := timestamp.LastHitDate.Format(layout)
+
+    return firstDateString, lastDateString
 }

@@ -4,20 +4,23 @@ import (
     "bufio"
     "fmt"
     "github.com/MMazoni/most-used-features/internal/data"
-    "unicode"
     "os"
     "regexp"
     "strconv"
     "strings"
+    "time"
+    "unicode"
 )
 
-func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data.MostAccessedFeatures, error) {
+func MostUsedFeatures(sheets []data.MostAccessedFeatures, timestampObj data.TimestampFilename, file *os.File) ([]data.MostAccessedFeatures, data.TimestampFilename, error) {
     scanner := bufio.NewScanner(file)
     allowedMethods := "GET POST PUT PATCH DELETE"
+
     for scanner.Scan() {
         line := scanner.Text()
         line = strings.ReplaceAll(line, "//", "/")
-        path, method, code := getWordsOfLogLine(line, "HTTP/")
+        path, method, code, date := getWordsOfLogLine(line, "HTTP/")
+
         if !strings.Contains(allowedMethods, method) || !strings.Contains(path, "/") {
             continue
         }
@@ -25,6 +28,7 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data
         if !isTheCorrectPath(path) {
             continue
         }
+        timestampObj, _ = getTimestamp(date, timestampObj)
 
         found := false
         for i, sheet := range sheets {
@@ -54,31 +58,34 @@ func MostUsedFeatures(sheets []data.MostAccessedFeatures, file *os.File) ([]data
     }
 
     err := scanner.Err()
-    return sheets, err
+    return sheets, timestampObj, err
 
 }
 
-func getWordsOfLogLine(line string, pattern string) (string, string, int) {
+func getWordsOfLogLine(line string, pattern string) (string, string, int, string) {
     index := strings.Index(line, pattern)
     if index == -1 {
-        return "", "", 0
+        return "", "", 0, ""
     }
 
     beforeSubstring := line[:index]
     afterSubstring := line[index:]
     words := strings.Fields(beforeSubstring)
+    date := words[len(words)-4][1:12]
+
+
     code, err := strconv.Atoi(strings.Fields(afterSubstring)[1])
     if err != nil {
         fmt.Println("Failed to convert string to int:", err)
         code = 0
     }
     if len(words) > 1 {
-        return formatPath(words[len(words)-1]), words[len(words)-2][1:], code
+        return formatPath(words[len(words)-1]), words[len(words)-2][1:], code, date
     } else if len(words) == 1 {
-        return "", words[0], code
+        return "", words[0], code, date
     }
 
-    return "", "", 0
+    return "", "", 0, date
 }
 
 func isTheCorrectPath(path string) bool {
@@ -164,3 +171,23 @@ func capitalize(str string) string {
     return string(runes)
 }
 
+func getTimestamp(dateString string, timestamp data.TimestampFilename) (data.TimestampFilename, error) {
+    parsedTime, err := time.Parse("02/Jan/2006", dateString)
+    if err != nil {
+        fmt.Println("Failed to parse the date:", err)
+        return data.TimestampFilename{}, err
+    }
+    if timestamp.FirstHitDate.IsZero() && timestamp.LastHitDate.IsZero() {
+        timestamp.FirstHitDate = parsedTime
+        timestamp.LastHitDate = parsedTime
+        return timestamp, nil
+    }
+    if parsedTime.Before(timestamp.FirstHitDate) {
+        timestamp.FirstHitDate = parsedTime
+    }
+    if parsedTime.After(timestamp.LastHitDate) {
+        timestamp.LastHitDate = parsedTime
+    }
+
+    return timestamp, nil
+}
