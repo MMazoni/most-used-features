@@ -25,11 +25,7 @@ func main() {
             return err
         }
 
-        if !d.IsDir() {
-
-            if !strings.Contains(path, "access_log") {
-                return filepath.SkipDir
-            }
+        if !d.IsDir() && strings.Contains(path, "access_log") {
 
             file, err := os.Open(path)
             if err != nil {
