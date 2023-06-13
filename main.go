@@ -18,7 +18,7 @@ func main() {
     startTime := time.Now()
 
     // log the errors
-    logFile, err := os.Create("logs/error.log")
+    logFile, err := os.Create("muf_error.log")
     if err != nil {
         fmt.Println("Failed to create log file:", err)
         return
