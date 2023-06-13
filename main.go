@@ -2,19 +2,20 @@ package main
 
 import (
     "fmt"
-    "path/filepath"
-    "os"
     "github.com/MMazoni/most-used-features/internal/data"
     "github.com/MMazoni/most-used-features/internal/input"
     "github.com/MMazoni/most-used-features/internal/output"
     "github.com/MMazoni/most-used-features/internal/search"
+    "os"
+    "path/filepath"
     "strings"
+    "time"
 )
 
 const outputFile = "csv/most-used-features.csv"
 
 func main() {
-
+    startTime := time.Now()
     dir := input.GetInput()
 
     fmt.Println(".")
@@ -52,6 +53,8 @@ func main() {
         fmt.Println("Error:", err)
         return
     }
+    elapsedTime := time.Since(startTime)
+    seconds := elapsedTime.Seconds()
     fmt.Println(".")
-    fmt.Println("CSV file created successfully")
+    fmt.Printf("CSV file created successfully in %.2f seconds\n", seconds)
 }
