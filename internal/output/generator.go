@@ -1,9 +1,10 @@
 package output
 
 import (
-    "github.com/MMazoni/most-used-features/internal/data"
+	"github.com/MMazoni/most-used-features/internal/data"
 )
 
 type Generator interface {
-    GenerateOutput( filePath string, data []data.MostAccessedFeatures) error
+	GenerateMufOutput(filePath string, data []data.MostAccessedFeatures) error
+	GenerateCsrfOutput(filePath string, data []data.MostCsrfErrors) error
 }
